@@ -1,2 +1,2 @@
 # bitcoin-converter
-Bitcoin to Satoshi to Thai baht convertor.
+Bitcoin-to-Satoshi-to-Thai-Baht Converter.
