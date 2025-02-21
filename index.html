@@ -13,7 +13,7 @@
             justify-content: center;
             align-items: center;
             margin: 0;
-            color: #fff; /* Body default, overridden by container */
+            color: #fff;
         }
         .container {
             background: rgba(255, 255, 255, 0.95);
@@ -23,18 +23,37 @@
             width: 100%;
             max-width: 500px;
             text-align: center;
-            color: #4d4d4d; /* Main text color */
+            color: #4d4d4d;
         }
         h1 {
             font-size: 2em;
             margin-bottom: 10px;
-            color: #4d4d4d; /* Updated from #f7931a */
+            color: #4d4d4d;
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        .rate-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
         }
         #rate {
             font-size: 0.9em;
-            color: #4d4d4d; /* Updated from #666 */
-            margin-bottom: 20px;
+            color: #4d4d4d;
+            margin-right: 10px;
+        }
+        #refresh-btn {
+            background: #f7931a;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background 0.3s ease;
+        }
+        #refresh-btn:hover {
+            background: #e07b00; /* Darker orange on hover */
         }
         .input-group {
             display: flex;
@@ -52,7 +71,7 @@
         label {
             width: 120px;
             font-weight: bold;
-            color: #4d4d4d; /* Updated from #f7931a */
+            color: #4d4d4d;
             text-align: right;
             margin-right: 10px;
         }
@@ -64,13 +83,13 @@
             font-size: 1em;
             outline: none;
             background: transparent;
-            color: #4d4d4d; /* Updated from #333 */
+            color: #4d4d4d;
         }
         input::placeholder {
-            color: #b3b3b3; /* Lighter gray for contrast against #4d4d4d */
+            color: #b3b3b3;
         }
         #error {
-            color: #4d4d4d; /* Updated from #e63946, but consider keeping red for errors */
+            color: #4d4d4d;
             font-size: 0.9em;
             margin-top: 10px;
             display: none;
@@ -78,10 +97,10 @@
         footer {
             margin-top: 20px;
             font-size: 0.8em;
-            color: #4d4d4d; /* Updated from #777 */
+            color: #4d4d4d;
         }
         footer a {
-            color: #f7931a; /* Kept as accent color */
+            color: #f7931a;
             text-decoration: none;
         }
         footer a:hover {
@@ -92,7 +111,10 @@
 <body>
     <div class="container">
         <h1>Bitcoin Converter</h1>
-        <p id="rate">Fetching BTC/THB rate...</p>
+        <div class="rate-container">
+            <p id="rate">Fetching BTC/THB rate...</p>
+            <button id="refresh-btn">Refresh</button>
+        </div>
         <div class="input-group">
             <label for="btc">Bitcoin (BTC):</label>
             <input type="text" id="btc" placeholder="Enter BTC">
@@ -122,6 +144,7 @@
                 btcToThbRate = data.THB_BTC.last;
                 document.getElementById('rate').textContent = `1 BTC = ${btcToThbRate.toLocaleString()} THB`;
                 document.getElementById('error').style.display = 'none';
+                updateFieldsBasedOnCurrentValues(); // Update fields with new rate
             } catch (error) {
                 console.error('Error fetching rate:', error);
                 document.getElementById('rate').textContent = 'Error fetching BTC/THB rate';
@@ -200,6 +223,25 @@
             }
         }
 
+        // Update fields based on current values after rate refresh
+        function updateFieldsBasedOnCurrentValues() {
+            const btcInput = document.getElementById('btc');
+            const satInput = document.getElementById('sat');
+            const thbInput = document.getElementById('thb');
+
+            const btcValue = cleanInput(btcInput.value);
+            const satValue = cleanInput(satInput.value);
+            const thbValue = cleanInput(thbInput.value);
+
+            if (btcValue !== '') {
+                handleInput('btc', btcInput, true);
+            } else if (satValue !== '') {
+                handleInput('sat', satInput, true);
+            } else if (thbValue !== '') {
+                handleInput('thb', thbInput, true);
+            }
+        }
+
         // Add event listeners to inputs
         const btcInput = document.getElementById('btc');
         const satInput = document.getElementById('sat');
@@ -218,6 +260,9 @@
         thbInput.addEventListener('input', () => handleInput('thb', thbInput));
         thbInput.addEventListener('input', () => debouncedUpdate('thb', thbInput));
         thbInput.addEventListener('blur', () => handleInput('thb', thbInput, true));
+
+        // Add event listener for refresh button
+        document.getElementById('refresh-btn').addEventListener('click', fetchBtcToThbRate);
 
         // Fetch the rate on page load
         fetchBtcToThbRate();
