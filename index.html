@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitcoin Converter (BTC, SAT, THB)</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f7931a;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            color: #fff; /* Body default, overridden by container */
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+            color: #4d4d4d; /* Main text color */
+        }
+        h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+            color: #4d4d4d; /* Updated from #f7931a */
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        #rate {
+            font-size: 0.9em;
+            color: #4d4d4d; /* Updated from #666 */
+            margin-bottom: 20px;
+        }
+        .input-group {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            background: #f9f9f9;
+            border-radius: 10px;
+            padding: 10px;
+            transition: all 0.3s ease;
+        }
+        .input-group:hover {
+            background: #fff;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            width: 120px;
+            font-weight: bold;
+            color: #4d4d4d; /* Updated from #f7931a */
+            text-align: right;
+            margin-right: 10px;
+        }
+        input {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            outline: none;
+            background: transparent;
+            color: #4d4d4d; /* Updated from #333 */
+        }
+        input::placeholder {
+            color: #b3b3b3; /* Lighter gray for contrast against #4d4d4d */
+        }
+        #error {
+            color: #4d4d4d; /* Updated from #e63946, but consider keeping red for errors */
+            font-size: 0.9em;
+            margin-top: 10px;
+            display: none;
+        }
+        footer {
+            margin-top: 20px;
+            font-size: 0.8em;
+            color: #4d4d4d; /* Updated from #777 */
+        }
+        footer a {
+            color: #f7931a; /* Kept as accent color */
+            text-decoration: none;
+        }
+        footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Bitcoin Converter</h1>
+        <p id="rate">Fetching BTC/THB rate...</p>
+        <div class="input-group">
+            <label for="btc">Bitcoin (BTC):</label>
+            <input type="text" id="btc" placeholder="Enter BTC">
+        </div>
+        <div class="input-group">
+            <label for="sat">Satoshis (SAT):</label>
+            <input type="text" id="sat" placeholder="Enter SAT">
+        </div>
+        <div class="input-group">
+            <label for="thb">Thai Baht (THB):</label>
+            <input type="text" id="thb" placeholder="Enter THB">
+        </div>
+        <p id="error">Failed to fetch BTC/THB rate. Please try again later.</p>
+        <footer>
+            Powered by <a href="https://www.bitkub.com" target="_blank">Bitkub API</a>
+        </footer>
+    </div>
+
+    <script>
+        let btcToThbRate = null;
+
+        // Fetch BTC/THB rate from Bitkub API
+        async function fetchBtcToThbRate() {
+            try {
+                const response = await fetch('https://api.bitkub.com/api/market/ticker?sym=THB_BTC');
+                const data = await response.json();
+                btcToThbRate = data.THB_BTC.last;
+                document.getElementById('rate').textContent = `1 BTC = ${btcToThbRate.toLocaleString()} THB`;
+                document.getElementById('error').style.display = 'none';
+            } catch (error) {
+                console.error('Error fetching rate:', error);
+                document.getElementById('rate').textContent = 'Error fetching BTC/THB rate';
+                document.getElementById('error').style.display = 'block';
+                btcToThbRate = null;
+            }
+        }
+
+        // Conversion functions
+        function btcToSat(btc) { return btc * 100000000; }
+        function satToBtc(sat) { return sat / 100000000; }
+        function btcToThb(btc) { return btcToThbRate ? btc * btcToThbRate : null; }
+        function thbToBtc(thb) { return btcToThbRate ? thb / btcToThbRate : null; }
+        function satToThb(sat) { return btcToThbRate ? satToBtc(sat) * btcToThbRate : null; }
+        function thbToSat(thb) { return btcToThbRate ? btcToSat(thbToBtc(thb)) : null; }
+
+        // Clean input by removing commas for calculation
+        function cleanInput(value) {
+            return value.replace(/,/g, '');
+        }
+
+        // Format number with commas based on field type
+        function formatNumber(value, fieldId) {
+            if (value === '' || isNaN(value)) return '';
+            const num = parseFloat(value);
+            if (fieldId === 'btc') {
+                return num.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 8 });
+            } else if (fieldId === 'sat') {
+                return Math.round(num).toLocaleString('en-US', { maximumFractionDigits: 0 });
+            } else if (fieldId === 'thb') {
+                return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }
+        }
+
+        // Debounce function to delay updates
+        function debounce(func, wait) {
+            let timeout;
+            return function (...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
+        // Handle input and update fields
+        function handleInput(changedId, inputElement, updateOthers = false) {
+            let rawValue = cleanInput(inputElement.value);
+            if (rawValue === '' || (updateOthers && (isNaN(rawValue) || rawValue < 0))) {
+                document.getElementById('btc').value = '';
+                document.getElementById('sat').value = '';
+                document.getElementById('thb').value = '';
+                return;
+            }
+
+            if (!updateOthers) return;
+
+            let value = parseFloat(rawValue);
+            inputElement.value = formatNumber(value, changedId);
+
+            if (changedId === 'btc') {
+                const sat = btcToSat(value);
+                const thb = btcToThb(value);
+                document.getElementById('sat').value = formatNumber(sat, 'sat');
+                document.getElementById('thb').value = btcToThbRate ? formatNumber(thb, 'thb') : '';
+            } else if (changedId === 'sat') {
+                const btc = satToBtc(value);
+                const thb = satToThb(value);
+                document.getElementById('btc').value = formatNumber(btc, 'btc');
+                document.getElementById('thb').value = btcToThbRate ? formatNumber(thb, 'thb') : '';
+            } else if (changedId === 'thb') {
+                if (btcToThbRate) {
+                    const btc = thbToBtc(value);
+                    const sat = thbToSat(value);
+                    document.getElementById('btc').value = formatNumber(btc, 'btc');
+                    document.getElementById('sat').value = formatNumber(sat, 'sat');
+                }
+            }
+        }
+
+        // Add event listeners to inputs
+        const btcInput = document.getElementById('btc');
+        const satInput = document.getElementById('sat');
+        const thbInput = document.getElementById('thb');
+
+        const debouncedUpdate = debounce((id, element) => handleInput(id, element, true), 500);
+
+        btcInput.addEventListener('input', () => handleInput('btc', btcInput));
+        btcInput.addEventListener('input', () => debouncedUpdate('btc', btcInput));
+        btcInput.addEventListener('blur', () => handleInput('btc', btcInput, true));
+
+        satInput.addEventListener('input', () => handleInput('sat', satInput));
+        satInput.addEventListener('input', () => debouncedUpdate('sat', satInput));
+        satInput.addEventListener('blur', () => handleInput('sat', satInput, true));
+
+        thbInput.addEventListener('input', () => handleInput('thb', thbInput));
+        thbInput.addEventListener('input', () => debouncedUpdate('thb', thbInput));
+        thbInput.addEventListener('blur', () => handleInput('thb', thbInput, true));
+
+        // Fetch the rate on page load
+        fetchBtcToThbRate();
+    </script>
+</body>
+</html>
