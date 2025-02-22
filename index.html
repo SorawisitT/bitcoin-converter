@@ -102,7 +102,7 @@
             color: #b3b3b3;
         }
         #error {
-            color: #d32f2f; /* Red for visibility */
+            color: #d32f2f;
             font-size: clamp(0.8em, 3vw, 0.9em);
             margin-top: 10px;
             display: none;
@@ -156,15 +156,15 @@
         </div>
         <div class="input-group">
             <label for="thb">Thai Baht (THB):</label>
-            <input type="tel" id="thb" placeholder="Enter THB" aria-describedby="thb-error">
+            <input type="text" id="thb" placeholder="Enter THB" aria-describedby="thb-error">
         </div>
         <div class="input-group">
             <label for="sat">Satoshis (SAT):</label>
-            <input type="tel" id="sat" placeholder="Enter SAT" aria-describedby="sat-error">
+            <input type="text" id="sat" placeholder="Enter SAT" aria-describedby="sat-error">
         </div>
         <div class="input-group">
             <label for="btc">Bitcoin (BTC):</label>
-            <input type="tel" id="btc" placeholder="Enter BTC" aria-describedby="btc-error">
+            <input type="text" id="btc" placeholder="Enter BTC" aria-describedby="btc-error">
         </div>
         <p id="error" aria-live="assertive">Failed to fetch BTC/THB rate. Please try again later.</p>
         <footer>
@@ -177,7 +177,7 @@
         let previousBtcToThbRate = null;
         let lastEditedField = null;
         let priceStatusTimeout = null;
-        let isFetching = false; // Track fetch state
+        let isFetching = false;
 
         const API_URL = 'https://api.bitkub.com/api/market/ticker?sym=THB_BTC';
 
@@ -191,7 +191,7 @@
 
         // Clean and validate input
         function cleanInput(value) {
-            const cleaned = value.replace(/[^0-9.]/g, ''); // Allow only digits and decimal
+            const cleaned = value.replace(/[^0-9.]/g, '');
             return cleaned === '' || isNaN(cleaned) ? '' : cleaned;
         }
 
@@ -200,7 +200,7 @@
             if (value === '' || isNaN(value)) return '';
             let num = parseFloat(value);
             if (fieldId === 'thb' || fieldId === 'sat') {
-                num = Math.round(num); // Integer for THB and SAT
+                num = Math.round(num);
             }
             if (fieldId === 'btc') {
                 return num.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 8 });
@@ -211,7 +211,7 @@
 
         // Fetch BTC/THB rate with robust error handling
         async function fetchBtcToThbRate() {
-            if (isFetching) return; // Prevent concurrent fetches
+            if (isFetching) return;
             isFetching = true;
             const refreshBtn = document.getElementById('refresh-btn');
             refreshBtn.disabled = true;
@@ -297,7 +297,7 @@
             }
             inputElement.value = formatNumber(value, changedId);
 
-            if (!btcToThbRate) return; // Skip conversions if rate unavailable
+            if (!btcToThbRate) return;
 
             if (changedId === 'btc') {
                 const sat = btcToSat(value);
@@ -319,7 +319,7 @@
 
         // Update fields based on last edited field
         function updateFieldsBasedOnCurrentValues() {
-            if (!btcToThbRate) return; // Skip if rate unavailable
+            if (!btcToThbRate) return;
             const btcInput = document.getElementById('btc');
             const satInput = document.getElementById('sat');
             const thbInput = document.getElementById('thb');
@@ -349,14 +349,13 @@
         const thbInput = document.getElementById('thb');
         const refreshBtn = document.getElementById('refresh-btn');
 
-        // Increased debounce delay to 750ms for better mobile performance
         const debouncedUpdate = debounce((id, element) => handleInput(id, element, true), 750);
 
         [btcInput, satInput, thbInput].forEach(input => {
             input.addEventListener('input', () => handleInput(input.id, input));
             input.addEventListener('input', () => debouncedUpdate(input.id, input));
             input.addEventListener('blur', () => handleInput(input.id, input, true));
-            input.addEventListener('focus', () => input.select()); // Enhance mobile usability
+            input.addEventListener('focus', () => input.select());
         });
 
         refreshBtn.addEventListener('click', fetchBtcToThbRate);
