@@ -218,9 +218,9 @@
         // Conversion functions
         function btcToSat(btc) { return btc * 100000000; }
         function satToBtc(sat) { return sat / 100000000; }
-        function btcToThb(btc) { return btcToThbRate ? btc * btcToThbRate : null; }
+        function btcToThb(btc) { return btcToThbRate ? Math.round(btc * btcToThbRate) : null; } // Round THB
         function thbToBtc(thb) { return btcToThbRate ? thb / btcToThbRate : null; }
-        function satToThb(sat) { return btcToThbRate ? satToBtc(sat) * btcToThbRate : null; }
+        function satToThb(sat) { return btcToThbRate ? Math.round(satToBtc(sat) * btcToThbRate) : null; } // Round THB
         function thbToSat(thb) { return btcToThbRate ? btcToSat(thbToBtc(thb)) : null; }
 
         // Clean input by removing commas for calculation
@@ -232,15 +232,13 @@
         function formatNumber(value, fieldId) {
             if (value === '' || isNaN(value)) return '';
             let num = parseFloat(value);
-            if (fieldId === 'sat') {
-                num = Math.round(num); // Enforce integer for SAT
+            if (fieldId === 'thb' || fieldId === 'sat') {
+                num = Math.round(num); // Enforce integer for THB and SAT
             }
             if (fieldId === 'btc') {
                 return num.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 8 });
-            } else if (fieldId === 'sat') {
+            } else if (fieldId === 'sat' || fieldId === 'thb') {
                 return num.toLocaleString('en-US', { maximumFractionDigits: 0 });
-            } else if (fieldId === 'thb') {
-                return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             }
         }
 
@@ -270,8 +268,8 @@
             }
 
             let value = parseFloat(rawValue);
-            if (changedId === 'sat') {
-                value = Math.round(value); // Enforce integer for SAT
+            if (changedId === 'thb' || changedId === 'sat') {
+                value = Math.round(value); // Enforce integer for THB and SAT
             }
             inputElement.value = formatNumber(value, changedId);
 
