@@ -3,11 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Convert between Bitcoin (BTC), Satoshis (SAT), and Thai Baht (THB) using real-time Bitkub API rates.">
     <title>Bitcoin Converter (BTC, SAT, THB)</title>
     <style>
+        :root {
+            --primary-color: #f7931a;
+            --hover-color: #e07b00;
+            --text-color: #4d4d4d;
+            --error-color: #d32f2f;
+            --bg-light: rgba(255, 255, 255, 0.95);
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f7931a;
+            background: var(--primary-color);
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -15,34 +25,39 @@
             margin: 0;
             color: #fff;
         }
+
         .container {
-            background: rgba(255, 255, 255, 0.95);
+            background: var(--bg-light);
             border-radius: 15px;
             padding: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            box-shadow: var(--shadow);
             width: 100%;
             max-width: 500px;
             text-align: center;
-            color: #4d4d4d;
+            color: var(--text-color);
             margin: 10px;
             box-sizing: border-box;
         }
+
         h1 {
             font-size: clamp(1.5em, 5vw, 2em);
             margin-bottom: 10px;
-            color: #4d4d4d;
+            color: var(--text-color);
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
         }
+
         .rate-container {
             margin-bottom: 15px;
         }
+
         #rate {
             font-size: clamp(0.8em, 3vw, 0.9em);
-            color: #4d4d4d;
+            color: var(--text-color);
             margin-bottom: 8px;
         }
+
         #refresh-btn {
-            background: #f7931a;
+            background: var(--primary-color);
             color: #fff;
             border: none;
             padding: 6px 12px;
@@ -51,20 +66,31 @@
             font-size: clamp(0.8em, 3vw, 0.9em);
             transition: background 0.3s ease;
         }
+
         #refresh-btn:hover:not(:disabled) {
-            background: #e07b00;
+            background: var(--hover-color);
         }
+
         #refresh-btn:disabled {
             background: #cccccc;
             cursor: not-allowed;
         }
+
         #price-status {
             font-size: clamp(0.7em, 2.5vw, 0.8em);
-            color: #4d4d4d;
+            color: var(--text-color);
             height: 1.2em;
             line-height: 1.2em;
             visibility: hidden;
+            transition: opacity 0.3s ease;
+            opacity: 0;
         }
+
+        #price-status.visible {
+            visibility: visible;
+            opacity: 1;
+        }
+
         .input-group {
             display: flex;
             flex-direction: row;
@@ -75,18 +101,21 @@
             padding: 8px;
             transition: all 0.3s ease;
         }
+
         .input-group:hover {
             background: #fff;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
+
         label {
             width: 120px;
             font-weight: bold;
-            color: #4d4d4d;
+            color: var(--text-color);
             text-align: right;
             margin-right: 10px;
             font-size: clamp(0.9em, 3vw, 1em);
         }
+
         input {
             flex: 1;
             padding: 8px;
@@ -95,28 +124,46 @@
             font-size: clamp(0.9em, 3vw, 1em);
             outline: none;
             background: transparent;
-            color: #4d4d4d;
+            color: var(--text-color);
             min-width: 0;
         }
+
+        input:focus-visible {
+            outline: 2px solid var(--primary-color);
+        }
+
         input::placeholder {
             color: #b3b3b3;
         }
+
         #error {
-            color: #d32f2f;
+            color: var(--error-color);
             font-size: clamp(0.8em, 3vw, 0.9em);
             margin-top: 10px;
             display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
+
+        #error.visible {
+            display: block;
+            opacity: 1;
+        }
+
         footer {
-            margin-top: 15px;
+            margin-top: 20px;
             font-size: clamp(0.7em, 2.5vw, 0.8em);
-            color: #4d4d4d;
+            color: var(--text-color);
         }
+
         footer a {
-            color: #f7931a;
+            color: var(--primary-color);
             text-decoration: none;
+            transition: color 0.3s ease;
         }
+
         footer a:hover {
+            color: var(--hover-color);
             text-decoration: underline;
         }
 
@@ -124,21 +171,25 @@
             .container {
                 padding: 15px;
             }
+
             .input-group {
                 flex-direction: column;
                 align-items: stretch;
                 padding: 10px;
             }
+
             label {
                 width: auto;
                 text-align: center;
                 margin-right: 0;
                 margin-bottom: 5px;
             }
+
             input {
                 width: 100%;
                 padding: 10px;
             }
+
             #refresh-btn {
                 width: 100%;
                 padding: 8px;
@@ -156,214 +207,216 @@
         </div>
         <div class="input-group">
             <label for="thb">Thai Baht (THB):</label>
-            <input type="text" id="thb" placeholder="Enter THB" aria-describedby="thb-error">
+            <input type="text" id="thb" placeholder="Enter THB" aria-describedby="error">
         </div>
         <div class="input-group">
             <label for="sat">Satoshis (SAT):</label>
-            <input type="text" id="sat" placeholder="Enter SAT" aria-describedby="sat-error">
+            <input type="text" id="sat" placeholder="Enter SAT" aria-describedby="error">
         </div>
         <div class="input-group">
             <label for="btc">Bitcoin (BTC):</label>
-            <input type="text" id="btc" placeholder="Enter BTC" aria-describedby="btc-error">
+            <input type="text" id="btc" placeholder="Enter BTC" aria-describedby="error">
         </div>
         <p id="error" aria-live="assertive">Failed to fetch BTC/THB rate. Please try again later.</p>
         <footer>
-            Powered by <a href="https://www.bitkub.com" target="_blank">Bitkub API</a> • 
-            Created by <a href="https://x.com/megojail" target="_blank">@megojail</a> • 
-            Support via <a href="https://getalby.com/p/odinx" target="_blank">Donations</a>
+            Powered by <a href="https://www.bitkub.com" target="_blank" rel="noopener noreferrer">Bitkub API</a> • 
+            Created by <a href="https://x.com/megojail" target="_blank" rel="noopener noreferrer">@megojail</a> • 
+            Support via <a href="https://getalby.com/p/odinx" target="_blank" rel="noopener noreferrer">Donations</a>
         </footer>
     </div>
 
     <script>
-        let btcToThbRate = null;
-        let previousBtcToThbRate = null;
-        let lastEditedField = null;
-        let priceStatusTimeout = null;
-        let isFetching = false;
-
-        const API_URL = 'https://api.bitkub.com/api/market/ticker?sym=THB_BTC';
-
-        // Conversion functions
-        const btcToSat = (btc) => btc * 100000000;
-        const satToBtc = (sat) => sat / 100000000;
-        const btcToThb = (btc) => btcToThbRate ? Math.round(btc * btcToThbRate) : null;
-        const thbToBtc = (thb) => btcToThbRate ? thb / btcToThbRate : null;
-        const satToThb = (sat) => btcToThbRate ? Math.round(satToBtc(sat) * btcToThbRate) : null;
-        const thbToSat = (thb) => btcToThbRate ? btcToSat(thbToBtc(thb)) : null;
-
-        // Clean and validate input
-        function cleanInput(value) {
-            const cleaned = value.replace(/[^0-9.]/g, '');
-            return cleaned === '' || isNaN(cleaned) ? '' : cleaned;
-        }
-
-        // Format number with commas based on field type
-        function formatNumber(value, fieldId) {
-            if (value === '' || isNaN(value)) return '';
-            let num = parseFloat(value);
-            if (fieldId === 'thb' || fieldId === 'sat') {
-                num = Math.round(num);
+        class BitcoinConverter {
+            constructor() {
+                this.btcToThbRate = null;
+                this.previousBtcToThbRate = null;
+                this.lastEditedField = null;
+                this.priceStatusTimeout = null;
+                this.isFetching = false;
+                this.API_URL = 'https://api.bitkub.com/api/market/ticker?sym=THB_BTC';
+                this.elements = {
+                    btc: document.getElementById('btc'),
+                    sat: document.getElementById('sat'),
+                    thb: document.getElementById('thb'),
+                    rate: document.getElementById('rate'),
+                    refreshBtn: document.getElementById('refresh-btn'),
+                    priceStatus: document.getElementById('price-status'),
+                    error: document.getElementById('error')
+                };
+                this.init();
             }
-            if (fieldId === 'btc') {
-                return num.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 8 });
-            } else {
-                return num.toLocaleString('en-US', { maximumFractionDigits: 0 });
+
+            // Conversion methods
+            btcToSat(btc) { return btc * 100000000; }
+            satToBtc(sat) { return sat / 100000000; }
+            btcToThb(btc) { return this.btcToThbRate ? Math.round(btc * this.btcToThbRate) : null; }
+            thbToBtc(thb) { return this.btcToThbRate ? thb / this.btcToThbRate : null; }
+            satToThb(sat) { return this.btcToThbRate ? Math.round(this.satToBtc(sat) * this.btcToThbRate) : null; }
+            thbToSat(thb) { return this.btcToThbRate ? this.btcToSat(this.thbToBtc(thb)) : null; }
+
+            cleanInput(value) {
+                const cleaned = value.replace(/[^0-9.]/g, '');
+                return cleaned === '' || isNaN(cleaned) ? '' : cleaned;
             }
-        }
 
-        // Fetch BTC/THB rate with robust error handling
-        async function fetchBtcToThbRate() {
-            if (isFetching) return;
-            isFetching = true;
-            const refreshBtn = document.getElementById('refresh-btn');
-            refreshBtn.disabled = true;
+            formatNumber(value, fieldId) {
+                if (value === '' || isNaN(value)) return '';
+                let num = parseFloat(value);
+                if (fieldId === 'thb' || fieldId === 'sat') num = Math.round(num);
+                return num.toLocaleString('en-US', {
+                    minimumFractionDigits: fieldId === 'btc' ? 0 : 0,
+                    maximumFractionDigits: fieldId === 'btc' ? 8 : 0
+                });
+            }
 
-            try {
-                const response = await fetch(`${API_URL}&_=${Date.now()}`, { cache: 'no-store' });
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
+            async fetchBtcToThbRate() {
+                if (this.isFetching) return;
+                this.isFetching = true;
+                this.elements.refreshBtn.disabled = true;
+
+                try {
+                    const response = await fetch(`${this.API_URL}&_=${Date.now()}`, { cache: 'no-store' });
+                    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                    const data = await response.json();
+                    const newRate = data.THB_BTC?.last;
+                    if (typeof newRate !== 'number' || isNaN(newRate)) {
+                        throw new Error('Invalid API response');
+                    }
+
+                    this.handleRateUpdate(newRate);
+                    this.elements.rate.textContent = `1 BTC = ${this.btcToThbRate.toLocaleString()} THB`;
+                    this.elements.error.classList.remove('visible');
+                    this.updateFields();
+                } catch (error) {
+                    console.error('Fetch error:', error);
+                    this.elements.rate.textContent = 'Rate unavailable';
+                    this.elements.error.textContent = error.message.includes('fetch') 
+                        ? 'Network error. Please check your connection.' 
+                        : 'Failed to fetch rate. Try again later.';
+                    this.elements.error.classList.add('visible');
+                    this.elements.priceStatus.classList.remove('visible');
+                    this.btcToThbRate = null;
+                } finally {
+                    this.isFetching = false;
+                    this.elements.refreshBtn.disabled = false;
                 }
-                const data = await response.json();
-                const newRate = data.THB_BTC?.last;
-                if (typeof newRate !== 'number' || isNaN(newRate)) {
-                    throw new Error('Invalid API response: Rate missing or not a number');
-                }
+            }
 
-                if (priceStatusTimeout) {
-                    clearTimeout(priceStatusTimeout);
-                }
-
-                if (newRate === previousBtcToThbRate && previousBtcToThbRate !== null) {
-                    document.getElementById('price-status').style.visibility = 'visible';
-                    priceStatusTimeout = setTimeout(() => {
-                        document.getElementById('price-status').style.visibility = 'hidden';
-                        priceStatusTimeout = null;
+            handleRateUpdate(newRate) {
+                if (this.priceStatusTimeout) clearTimeout(this.priceStatusTimeout);
+                if (newRate === this.previousBtcToThbRate && this.previousBtcToThbRate !== null) {
+                    this.elements.priceStatus.classList.add('visible');
+                    this.priceStatusTimeout = setTimeout(() => {
+                        this.elements.priceStatus.classList.remove('visible');
+                        this.priceStatusTimeout = null;
                     }, 10000);
                 } else {
-                    document.getElementById('price-status').style.visibility = 'hidden';
+                    this.elements.priceStatus.classList.remove('visible');
+                }
+                this.btcToThbRate = newRate;
+                this.previousBtcToThbRate = newRate;
+            }
+
+            debounce(func, wait) {
+                let timeout;
+                return (...args) => {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => func.apply(this, args), wait);
+                };
+            }
+
+            handleInput(changedId, inputElement, updateOthers = false) {
+                const rawValue = this.cleanInput(inputElement.value);
+                if (rawValue === '' || (updateOthers && (isNaN(rawValue) || parseFloat(rawValue) < 0))) {
+                    this.clearFields();
+                    return;
                 }
 
-                btcToThbRate = newRate;
-                previousBtcToThbRate = newRate;
-
-                document.getElementById('rate').textContent = `1 BTC = ${btcToThbRate.toLocaleString()} THB`;
-                document.getElementById('error').style.display = 'none';
-                updateFieldsBasedOnCurrentValues();
-            } catch (error) {
-                console.error('Fetch error:', error);
-                document.getElementById('rate').textContent = 'Rate unavailable';
-                document.getElementById('error').textContent = error.message.includes('fetch') 
-                    ? 'Network error. Please check your connection.' 
-                    : error.message;
-                document.getElementById('error').style.display = 'block';
-                document.getElementById('price-status').style.visibility = 'hidden';
-                if (priceStatusTimeout) {
-                    clearTimeout(priceStatusTimeout);
-                    priceStatusTimeout = null;
+                if (!updateOthers) {
+                    this.lastEditedField = changedId;
+                    return;
                 }
-                btcToThbRate = null;
-            } finally {
-                isFetching = false;
-                refreshBtn.disabled = false;
+
+                let value = parseFloat(rawValue);
+                if (changedId === 'thb' || changedId === 'sat') value = Math.round(value);
+                inputElement.value = this.formatNumber(value, changedId);
+
+                if (!this.btcToThbRate) return;
+
+                if (changedId === 'btc') {
+                    this.updateFieldsFromBtc(value);
+                } else if (changedId === 'sat') {
+                    this.updateFieldsFromSat(value);
+                } else if (changedId === 'thb') {
+                    this.updateFieldsFromThb(value);
+                }
+            }
+
+            updateFieldsFromBtc(btc) {
+                const sat = this.btcToSat(btc);
+                const thb = this.btcToThb(btc);
+                this.elements.sat.value = this.formatNumber(sat, 'sat');
+                this.elements.thb.value = this.formatNumber(thb, 'thb');
+            }
+
+            updateFieldsFromSat(sat) {
+                const btc = this.satToBtc(sat);
+                const thb = this.satToThb(sat);
+                this.elements.btc.value = this.formatNumber(btc, 'btc');
+                this.elements.thb.value = this.formatNumber(thb, 'thb');
+            }
+
+            updateFieldsFromThb(thb) {
+                const btc = this.thbToBtc(thb);
+                const sat = this.thbToSat(thb);
+                this.elements.btc.value = this.formatNumber(btc, 'btc');
+                this.elements.sat.value = this.formatNumber(sat, 'sat');
+            }
+
+            clearFields() {
+                this.elements.btc.value = '';
+                this.elements.sat.value = '';
+                this.elements.thb.value = '';
+                this.lastEditedField = null;
+            }
+
+            updateFields() {
+                if (!this.btcToThbRate) return;
+                const values = {
+                    btc: this.cleanInput(this.elements.btc.value),
+                    sat: this.cleanInput(this.elements.sat.value),
+                    thb: this.cleanInput(this.elements.thb.value)
+                };
+
+                if (this.lastEditedField === 'thb' && values.thb) {
+                    this.handleInput('thb', this.elements.thb, true);
+                } else if (this.lastEditedField === 'sat' && values.sat) {
+                    this.handleInput('sat', this.elements.sat, true);
+                } else if (this.lastEditedField === 'btc' && values.btc) {
+                    this.handleInput('btc', this.elements.btc, true);
+                } else if (values.thb) {
+                    this.handleInput('thb', this.elements.thb, true);
+                } else if (values.sat) {
+                    this.handleInput('sat', this.elements.sat, true);
+                } else if (values.btc) {
+                    this.handleInput('btc', this.elements.btc, true);
+                }
+            }
+
+            init() {
+                const debouncedUpdate = this.debounce((id, element) => this.handleInput(id, element, true), 750);
+                [this.elements.btc, this.elements.sat, this.elements.thb].forEach(input => {
+                    input.addEventListener('input', () => this.handleInput(input.id, input));
+                    input.addEventListener('input', () => debouncedUpdate(input.id, input));
+                    input.addEventListener('blur', () => this.handleInput(input.id, input, true));
+                    input.addEventListener('focus', () => input.select());
+                });
+                this.elements.refreshBtn.addEventListener('click', () => this.fetchBtcToThbRate());
+                this.fetchBtcToThbRate();
             }
         }
 
-        // Debounce function with longer delay for mobile
-        function debounce(func, wait) {
-            let timeout;
-            return function (...args) {
-                clearTimeout(timeout);
-                timeout = setTimeout(() => func.apply(this, args), wait);
-            };
-        }
-
-        // Handle and validate input
-        function handleInput(changedId, inputElement, updateOthers = false) {
-            let rawValue = cleanInput(inputElement.value);
-            if (rawValue === '' || (updateOthers && (isNaN(rawValue) || parseFloat(rawValue) < 0))) {
-                document.getElementById('btc').value = '';
-                document.getElementById('sat').value = '';
-                document.getElementById('thb').value = '';
-                lastEditedField = null;
-                return;
-            }
-
-            if (!updateOthers) {
-                lastEditedField = changedId;
-                return;
-            }
-
-            let value = parseFloat(rawValue);
-            if (changedId === 'thb' || changedId === 'sat') {
-                value = Math.round(value);
-            }
-            inputElement.value = formatNumber(value, changedId);
-
-            if (!btcToThbRate) return;
-
-            if (changedId === 'btc') {
-                const sat = btcToSat(value);
-                const thb = btcToThb(value);
-                document.getElementById('sat').value = formatNumber(sat, 'sat');
-                document.getElementById('thb').value = formatNumber(thb, 'thb');
-            } else if (changedId === 'sat') {
-                const btc = satToBtc(value);
-                const thb = satToThb(value);
-                document.getElementById('btc').value = formatNumber(btc, 'btc');
-                document.getElementById('thb').value = formatNumber(thb, 'thb');
-            } else if (changedId === 'thb') {
-                const btc = thbToBtc(value);
-                const sat = thbToSat(value);
-                document.getElementById('btc').value = formatNumber(btc, 'btc');
-                document.getElementById('sat').value = formatNumber(sat, 'sat');
-            }
-        }
-
-        // Update fields based on last edited field
-        function updateFieldsBasedOnCurrentValues() {
-            if (!btcToThbRate) return;
-            const btcInput = document.getElementById('btc');
-            const satInput = document.getElementById('sat');
-            const thbInput = document.getElementById('thb');
-
-            const btcValue = cleanInput(btcInput.value);
-            const satValue = cleanInput(satInput.value);
-            const thbValue = cleanInput(thbInput.value);
-
-            if (lastEditedField === 'thb' && thbValue !== '') {
-                handleInput('thb', thbInput, true);
-            } else if (lastEditedField === 'sat' && satValue !== '') {
-                handleInput('sat', satInput, true);
-            } else if (lastEditedField === 'btc' && btcValue !== '') {
-                handleInput('btc', btcInput, true);
-            } else if (thbValue !== '') {
-                handleInput('thb', thbInput, true);
-            } else if (satValue !== '') {
-                handleInput('sat', satInput, true);
-            } else if (btcValue !== '') {
-                handleInput('btc', btcInput, true);
-            }
-        }
-
-        // Add event listeners
-        const btcInput = document.getElementById('btc');
-        const satInput = document.getElementById('sat');
-        const thbInput = document.getElementById('thb');
-        const refreshBtn = document.getElementById('refresh-btn');
-
-        const debouncedUpdate = debounce((id, element) => handleInput(id, element, true), 750);
-
-        [btcInput, satInput, thbInput].forEach(input => {
-            input.addEventListener('input', () => handleInput(input.id, input));
-            input.addEventListener('input', () => debouncedUpdate(input.id, input));
-            input.addEventListener('blur', () => handleInput(input.id, input, true));
-            input.addEventListener('focus', () => input.select());
-        });
-
-        refreshBtn.addEventListener('click', fetchBtcToThbRate);
-
-        // Initial fetch
-        fetchBtcToThbRate();
+        document.addEventListener('DOMContentLoaded', () => new BitcoinConverter());
     </script>
 </body>
 </html>
