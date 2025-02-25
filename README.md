@@ -1,4 +1,4 @@
-# Bitcoin Converter
+# Odin 𝕏's Bitcoin Converter
 
 A web application that allows users to quickly convert between **Thai Baht (THB), Bitcoin (BTC), and Satoshis (SAT)** while providing real-world valuations of Bitcoin for common products.
 
