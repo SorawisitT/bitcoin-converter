@@ -7,42 +7,106 @@
     <title>Bitcoin Converter (BTC, SAT, THB)</title>
     <style>
         :root {
+            /* Light mode variables */
             --primary-color: #f7931a;
             --hover-color: #e07b00;
             --text-color: #4d4d4d;
             --error-color: #d32f2f;
             --bg-light: rgba(255, 255, 255, 0.95);
             --shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            --body-bg: var(--primary-color);
+            --container-bg: var(--bg-light);
+            --input-bg: #f9f9f9;
+            --input-bg-hover: #fff;
+            --input-color: var(--text-color);
+            --input-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Dark mode variables */
+        [data-theme="dark"] {
+            --primary-color: #ff9f1a;
+            --hover-color: #ffb74d;
+            --text-color: #e0e0e0;
+            --error-color: #ff5252;
+            --bg-light: rgba(33, 33, 33, 0.95);
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            --body-bg: #121212;
+            --container-bg: var(--bg-light);
+            --input-bg: #2c2c2c;
+            --input-bg-hover: #333333;
+            --input-color: #e0e0e0;
+            --input-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: var(--primary-color);
+            background: var(--body-bg);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             margin: 0;
             color: #fff;
+            transition: background 0.3s ease;
         }
 
         .container {
-            background: var(--bg-light);
+            background: var(--container-bg);
             border-radius: 15px;
             padding: 20px;
             box-shadow: var(--shadow);
             width: 100%;
-            max-width: 900px; /* Widened to accommodate new panes */
+            max-width: 900px;
             text-align: center;
             color: var(--text-color);
             margin: 10px;
             box-sizing: border-box;
+            transition: background 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+        }
+
+        h1, h2 {
+            color: var(--text-color);
+            transition: color 0.3s ease;
         }
 
         h1 {
             font-size: clamp(1.5em, 5vw, 2em);
             margin-bottom: 10px;
-            color: var(--text-color);
+            text-align: center; /* Center the title */
+        }
+
+        h2 {
+            font-size: clamp(1em, 4vw, 1.2em);
+            margin: 15px 0;
+        }
+
+        .theme-toggle-container {
+            display: flex;
+            justify-content: flex-end; /* Align button to the right */
+            margin-top: 20px; /* Space above the button */
+            margin-bottom: 10px; /* Space below the button, before footer */
+        }
+
+        .theme-toggle {
+            background: var(--primary-color);
+            color: #fff;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: clamp(0.8em, 3vw, 0.9em);
+            transition: background 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .theme-toggle:hover {
+            background: var(--hover-color);
+        }
+
+        .theme-toggle i {
+            font-size: 1.2em;
         }
 
         .rate-container {
@@ -53,6 +117,7 @@
             font-size: clamp(0.8em, 3vw, 0.9em);
             color: var(--text-color);
             margin-bottom: 8px;
+            transition: color 0.3s ease;
         }
 
         #refresh-btn {
@@ -81,7 +146,7 @@
             height: 1.2em;
             line-height: 1.2em;
             visibility: hidden;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.3s ease, color 0.3s ease;
             opacity: 0;
         }
 
@@ -95,15 +160,15 @@
             flex-direction: row;
             align-items: center;
             margin: 10px 0;
-            background: #f9f9f9;
+            background: var(--input-bg);
             border-radius: 10px;
             padding: 8px;
             transition: all 0.3s ease;
         }
 
         .input-group:hover, .price-pane:hover {
-            background: #fff;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            background: var(--input-bg-hover);
+            box-shadow: var(--input-shadow);
         }
 
         label, .price-label {
@@ -113,6 +178,7 @@
             text-align: right;
             margin-right: 10px;
             font-size: clamp(0.9em, 3vw, 1em);
+            transition: color 0.3s ease;
         }
 
         input, .price-value {
@@ -123,8 +189,9 @@
             font-size: clamp(0.9em, 3vw, 1em);
             outline: none;
             background: transparent;
-            color: var(--text-color);
+            color: var(--input-color);
             min-width: 0;
+            transition: color 0.3s ease;
         }
 
         input:focus-visible {
@@ -141,7 +208,7 @@
             margin-top: 10px;
             display: none;
             opacity: 0;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.3s ease, color 0.3s ease;
         }
 
         #error.visible {
@@ -165,6 +232,7 @@
             margin-top: 20px;
             font-size: clamp(0.7em, 2.5vw, 0.8em);
             color: var(--text-color);
+            transition: color 0.3s ease;
         }
 
         footer a {
@@ -205,6 +273,15 @@
                 width: 100%;
                 padding: 8px;
             }
+
+            .theme-toggle-container {
+                justify-content: center; /* Center the button on small screens */
+            }
+
+            .theme-toggle {
+                width: 100%; /* Full width on small screens */
+                padding: 8px;
+            }
         }
     </style>
 </head>
@@ -229,7 +306,7 @@
             <input type="text" id="btc" placeholder="Enter BTC" aria-describedby="error">
         </div>
         <div class="price-examples">
-            <h2 style="font-size: clamp(1em, 4vw, 1.2em); margin: 15px 0;">Life on a Bitcoin Standard</h2>
+            <h2>Life on a Bitcoin Standard</h2>
             <div class="price-pane">
                 <span class="price-label">iPhone 16 Pro:</span>
                 <span class="price-value" id="iphone-thb">฿39,900</span>
@@ -250,6 +327,11 @@
             </div>
         </div>
         <p id="error" aria-live="assertive">Failed to fetch BTC/THB rate. Please try again later.</p>
+        <div class="theme-toggle-container">
+            <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark/light mode">
+                🌙 Dark
+            </button>
+        </div>
         <footer>
             Powered by <a href="https://www.bitkub.com" target="_blank" rel="noopener noreferrer">Bitkub API</a> • 
             Created by <a href="https://x.com/megojail" target="_blank" rel="noopener noreferrer">@megojail</a> • 
@@ -266,6 +348,7 @@
                 this.priceStatusTimeout = null;
                 this.isFetching = false;
                 this.API_URL = 'https://api.bitkub.com/api/market/ticker?sym=THB_BTC';
+                this.isDarkMode = localStorage.getItem('theme') === 'dark';
                 this.elements = {
                     btc: document.getElementById('btc'),
                     sat: document.getElementById('sat'),
@@ -282,7 +365,8 @@
                     yarisSat: document.getElementById('yaris-sat'),
                     houseThb: document.getElementById('house-thb'),
                     houseBtc: document.getElementById('house-btc'),
-                    houseSat: document.getElementById('house-sat')
+                    houseSat: document.getElementById('house-sat'),
+                    themeToggle: document.getElementById('theme-toggle')
                 };
                 this.prices = {
                     iphone: 39900,
@@ -290,6 +374,7 @@
                     house: 10000000
                 };
                 this.init();
+                this.initTheme();
             }
 
             btcToSat(btc) { return btc * 100000000; }
@@ -342,7 +427,7 @@
                     this.elements.error.classList.add('visible');
                     this.elements.priceStatus.classList.remove('visible');
                     this.btcToThbRate = null;
-                    this.updatePriceExamples(true); // Update with error state
+                    this.updatePriceExamples(true);
                 } finally {
                     this.isFetching = false;
                     this.elements.refreshBtn.disabled = false;
@@ -474,6 +559,29 @@
                 } else if (values.btc) {
                     this.handleInput('btc', this.elements.btc, true);
                 }
+            }
+
+            initTheme() {
+                if (this.isDarkMode) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    this.elements.themeToggle.innerHTML = '☀️ Light';
+                } else {
+                    document.documentElement.setAttribute('data-theme', 'light');
+                    this.elements.themeToggle.innerHTML = '🌙 Dark';
+                }
+
+                this.elements.themeToggle.addEventListener('click', () => {
+                    this.isDarkMode = !this.isDarkMode;
+                    if (this.isDarkMode) {
+                        document.documentElement.setAttribute('data-theme', 'dark');
+                        localStorage.setItem('theme', 'dark');
+                        this.elements.themeToggle.innerHTML = '☀️ Light';
+                    } else {
+                        document.documentElement.setAttribute('data-theme', 'light');
+                        localStorage.setItem('theme', 'light');
+                        this.elements.themeToggle.innerHTML = '🌙 Dark';
+                    }
+                });
             }
 
             init() {
